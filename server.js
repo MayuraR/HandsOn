@@ -4,15 +4,19 @@ const server = http.createServer((req, res) => {
     console.log('Request Made')
     res.setHeader('Content-Type', 'text/html')
     // Routing
+    // setting status codes
     let path = './views/'       // storing the path of the folder which contains html files
     switch(req.url){            // switichng the url's path (retrieved from the request object) and concatenating the html file's name accordingly
-        case '/':
-            path += 'index.html';
+        case '/':            
+            res.statusCode = 200;
+            path += 'index.html'; 
             break;
         case '/about':
+            res.statusCode = 200;
             path += 'contactUs.html';
             break;
         default:
+            res.statusCode = 404;
             path += 'error.html'
             break;
     }
