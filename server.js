@@ -1,12 +1,20 @@
 const http = require('http');
+const fs = require('fs');
+// rendering an html file in the response using fs
 
 // create a server
 const server = http.createServer((req, res) => {  
     console.log('Request Made')
-    // sending html in the response and setting the header
     res.setHeader('Content-Type', 'text/html')
-    res.write("<h1>HOME</h1>");
-    res.end();
+    fs.readFile('./views/index.html', (err, data) => {
+        if(err){
+            console.log("error");
+            res.end();
+        } else {
+            res.write(data)
+            res.end();
+        }
+    })
 });
 
 
