@@ -1,0 +1,5 @@
+step 1: npm init -y for initialization
+
+step 2: install express as a dependency: npm i express
+
+step 3: install nodemon as a dev dependancy: npm i nodemon --save-dev
