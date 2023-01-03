@@ -15,6 +15,12 @@ const server = http.createServer((req, res) => {
             res.statusCode = 200;
             path += 'contactUs.html';
             break;
+        // redirects
+        case '/contactUs':
+            res.statusCode = 301;       // setting statusCode for redirect
+            res.setHeader('Location', '/about')
+            res.end();
+            break;
         default:
             res.statusCode = 404;
             path += 'error.html'
