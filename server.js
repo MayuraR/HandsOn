@@ -3,8 +3,10 @@ const http = require('http');
 // create a server
 const server = http.createServer((req, res) => {  
     console.log('Request Made')
-    console.log(req);   // log the reqest object
-    console.log(req.url, req.method);   // log the path and the method of the request
+    // sending text in the response and setting the header
+    res.setHeader('Content-Type', 'text/plain')
+    res.write("HOME");
+    res.end();
 });
 
 
