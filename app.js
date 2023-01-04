@@ -1,5 +1,7 @@
 const express = require('express');
 const app = express();
+const userRoute = require('./routers/user');
+
 
 app.set('view engine','ejs');
 
@@ -13,13 +15,8 @@ app.get('/', (req, res) =>{
     res.render('index', {text : "VISIT US"})
 })
 
-app.get('/about', (req, res) =>{
-    res.render('contactUs', {text123 : "VISIT US"})
-})
+app.use('/users', userRoute);
 
-app.get('/contact', (req, res) =>{
-    res.redirect('/about')
-})
 
 app.use((req, res) =>{
     res.status(404).render('error')
