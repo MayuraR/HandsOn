@@ -22,34 +22,11 @@ app.use((req, res, next) => {
     console.log(req.method);
     next();
 })
-
-app.get('/', (req, res) =>{
-    res.render('index', {text : "VISIT US"})
-})
-
-app.get('/about', (req, res) =>{
-    res.render('contactUs', {text123 : "VISIT US"})
-})
-
-app.get('/contact', (req, res) =>{
-    res.redirect('/about')
-})
-
+app.use(express.urlencoded({ extended: true }));
 
 // MongoDB operations
 app.get('/getAllBooks', (req, res) => {
     Book.find()
-      .then(result => {
-        res.send(result);
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  });
-
-
-app.get('/getBook', (req, res) => {
-    Book.findById('63b58b39371fe30479310dab')
       .then(result => {
         res.send(result);
       })
@@ -73,17 +50,57 @@ app.get('/getBook', (req, res) => {
       });
   });
 
-  app.get('/addBook1', (req, res) => {
-    const myBook = new Book({
-        title: 'book2'
-    })
-    myBook.save()
+
+  app.get('/create', (req, res) => {
+    res.render('create');
+  });
+
+  app.post('/book', (req, res) => {
+    console.log(req.body);
+    const newBook = new Book(req.body);
+  
+    newBook.save()
+      .then(result => {
+        res.send(result)
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  });
+
+  app.get('/getRecent', (req, res) => {
+    // find the recently created book
+    Book.find().sort({ createdAt: -1 })
     .then(result => {
+      res.send(result.slice(-1));
+    })
+    .catch(err => {
+      console.log(err);
+    });
+  });
+
+  app.get('/books/:id', (req, res) => {
+    const id = req.params.id;
+    Book.findById(id)
+      .then(result => {
         res.send(result);
       })
       .catch(err => {
         console.log(err);
-        res.send(err)
+      });
+  });
+
+  // Done using postman's desktop agent
+  app.delete('/books/:id', (req, res) => {
+    console.log('!!!!')
+    const id = req.params.id;
+    
+    Book.findByIdAndDelete(id)
+      .then(result => {
+        res.send("Deleted");
+      })
+      .catch(err => {
+        console.log(err);
       });
   });
 
