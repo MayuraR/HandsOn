@@ -1,47 +1,79 @@
-const http = require('http');
-const fs = require('fs');
-const server = http.createServer((req, res) => {     
-    console.log('Request Made')
-    res.setHeader('Content-Type', 'text/html')
-    // Routing
-    // setting status codes
-    let path = './views/'       // storing the path of the folder which contains html files
-    switch(req.url){            // switichng the url's path (retrieved from the request object) and concatenating the html file's name accordingly
-        case '/':            
-            res.statusCode = 200;
-            path += 'index.html'; 
-            break;
-        case '/about':
-            res.statusCode = 200;
-            path += 'contactUs.html';
-            break;
-        // redirects
-        case '/contactUs':
-            res.statusCode = 301;       // setting statusCode for redirect
-            res.setHeader('Location', '/about')
-            res.end();
-            break;
-        default:
-            res.statusCode = 404;
-            path += 'error.html'
-            break;
-    }
-
-    fs.readFile(path, (err, data) => {
-        if(err){
-            console.log(err);
-            res.end();
-        } else {
-            res.write(data);
-            res.end();
-        }
-    })
-
-
+const AWS = require('aws-sdk');
+const { resolve } = require('path');
+AWS.config.update({
+    region: 'us-east-1'
 });
 
+const dynamoDB = new AWS.DynamoDB.DocumentClient();
+const tableName = 'Books';
+
+exports.handler = async function(event){
+    console.log('event recieved');
+    let response;
+    console.log(event)
+    switch(event.path){
+        case '/book':
+            response = await saveProduct(JSON.parse(event.body));
+            break;
+        case '/getbooks':
+            response = await getAllBooks();
+            break;
+        default:
+            response = await buildResponse(404, {message: 'page not found'});
+    }
+    return response;
+}
 
 
-server.listen(3000, 'localhost', () =>{
-    console.log('Listening')
-})
+async function saveProduct(requestBody) {
+  const params = {
+    TableName: tableName,
+    Item: requestBody
+  }
+  return await dynamoDB.put(params).promise().then(() => {
+    const body = {
+      Operation: 'SAVE',
+      Message: 'SUCCESS',
+      Item: requestBody
+    }
+    return buildResponse(200, body);
+  }, (error) => {
+    console.error('Do your custom error handling here. I am just gonna log it: ', error);
+  })
+}
+
+const getAllBooks = async ()=>{
+    const params = {
+      TableName: tableName
+    }
+    const allbooks = await scanDynamoRecords(params, []);
+    const body = {
+      books: allbooks
+    }
+    return buildResponse(200, body);
+  }
+  
+const scanDynamoRecords = async (scanParams, itemArray) => {
+    try {
+      const dynamoData = await dynamoDB.scan(scanParams).promise();
+      itemArray = itemArray.concat(dynamoData.Items);
+      if (dynamoData.LastEvaluatedKey) {
+        scanParams.ExclusiveStartkey = dynamoData.LastEvaluatedKey;
+        return await scanDynamoRecords(scanParams, itemArray);
+      }
+      return itemArray;
+    } catch(error) {
+      console.error('Do your custom error handling here. I am just gonna log it: ', error);
+    }
+  }
+
+  function buildResponse(statusCode, responseBody) {
+    console.log(responseBody)
+    return {
+      statusCode: statusCode,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(responseBody)
+    }
+  }
